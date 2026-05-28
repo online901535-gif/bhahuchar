@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>Bahuchar Pan Shop Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   DESIGN TOKENS
+   ═══════════════════════════════════════════════ */
+:root{
+  --g1:#00875A;--g2:#00A86B;--g3:#00C87A;
+  --g4:#E8F8F0;--g5:#D0F0E0;
+  --dark:#0D1F17;--dark2:#162B1F;
+  --card:rgba(255,255,255,0.96);
+  --card-b:rgba(0,135,90,0.14);
+  --bg:#F0FAF5;--bg2:#FAFFFE;
+  --text:#0D1F17;--text2:#4A6E5E;--text3:#8AAFA0;
+  --red:#E53E3E;--red-l:#FFF5F5;
+  --amber:#D97706;--amber-l:#FFFBEB;
+  --blue:#2B6CB0;--blue-l:#EBF4FF;
+  --sha:0 2px 16px rgba(0,135,90,.10);
+  --sha-md:0 4px 24px rgba(0,135,90,.15);
+  --r:14px;--r-sm:8px;--r-lg:20px;
+  --font:'Poppins',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --sb:250px;--ease:cubic-bezier(.4,0,.2,1);
+}
+[data-theme=dark]{
+  --card:rgba(22,43,31,.96);--card-b:rgba(0,200,122,.14);
+  --bg:#081209;--bg2:#0D1F17;
+  --text:#E8F8F0;--text2:#90C8A8;--text3:#4A8060;
+  --g4:#0D2A1C;--g5:#0A2018;
+  --sha:0 2px 16px rgba(0,0,0,.4);--sha-md:0 4px 24px rgba(0,0,0,.5);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+button,input,select,textarea{font-family:var(--font)}
+button{cursor:pointer}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--g2);border-radius:4px}
+
+/* ═══ SETUP / LOADING SCREENS ═══ */
+#setup-screen,#loading-screen{
+  position:fixed;inset:0;display:flex;align-items:center;
+  justify-content:center;flex-direction:column;gap:14px;
+  background:linear-gradient(135deg,#00875A,#00C87A);
+  z-index:9999;padding:20px;
+}
+.setup-box{
+  background:#fff;border-radius:var(--r-lg);padding:32px 28px;
+  width:100%;max-width:560px;box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+.setup-title{font-size:20px;font-weight:800;color:var(--g1);margin-bottom:4px}
+.setup-sub{font-size:12px;color:#666;margin-bottom:20px}
+.step{background:#f0faf5;border-left:4px solid var(--g2);border-radius:0 var(--r-sm) var(--r-sm) 0;padding:10px 14px;margin-bottom:8px;font-size:12px;color:#2d5a47;line-height:1.6}
+.step strong{display:block;font-size:13px;margin-bottom:2px;color:var(--g1)}
+.setup-box .fc{width:100%;padding:10px 12px;font-size:13px;border:1.5px solid #ddd;border-radius:var(--r-sm);margin-bottom:8px;background:#fafffe;font-family:var(--font)}
+.setup-box .fc:focus{outline:none;border-color:var(--g2)}
+.setup-btn{width:100%;padding:12px;font-size:14px;font-weight:700;background:linear-gradient(135deg,var(--g1),var(--g3));color:#fff;border:none;border-radius:var(--r-sm);box-shadow:0 4px 16px rgba(0,135,90,.4);margin-top:4px;cursor:pointer;transition:all .2s}
+.setup-btn:hover{box-shadow:0 6px 20px rgba(0,135,90,.5);transform:translateY(-1px)}
+#setup-err{font-size:12px;color:var(--red);min-height:16px;margin-top:6px}
+.spin{width:36px;height:36px;border:3px solid rgba(255,255,255,.3);border-top:3px solid #fff;border-radius:50%;animation:spin .8s linear infinite}
+.load-txt{color:#fff;font-size:14px;font-weight:600}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══ LOGIN ═══ */
+#login-screen{
+  position:fixed;inset:0;display:none;align-items:center;
+  justify-content:center;padding:20px;z-index:500;
+  background:linear-gradient(135deg,#00875A 0%,#00C87A 60%,#00A86B 100%);
+}
+.login-box{background:rgba(255,255,255,.97);border-radius:var(--r-lg);padding:40px 36px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2);text-align:center;backdrop-filter:blur(20px)}
+.l-logo{font-size:48px;margin-bottom:10px}
+.l-title{font-size:21px;font-weight:800;color:var(--g1);margin-bottom:2px;line-height:1.2}
+.l-sub{font-size:11px;color:#888;margin-bottom:24px}
+.l-fc{width:100%;padding:11px 13px;font-size:13px;border:1.5px solid #e0eae5;border-radius:var(--r-sm);background:#fafffe;color:var(--text);margin-bottom:10px;font-family:var(--font)}
+.l-fc:focus{outline:none;border-color:var(--g2)}
+.l-btn{width:100%;padding:13px;font-size:14px;font-weight:700;background:linear-gradient(135deg,var(--g1),var(--g3));color:#fff;border:none;border-radius:var(--r-sm);box-shadow:0 4px 16px rgba(0,135,90,.4);cursor:pointer;transition:all .2s;margin-top:2px}
+.l-btn:hover{box-shadow:0 6px 20px rgba(0,135,90,.5);transform:translateY(-1px)}
+#l-err{font-size:12px;color:var(--red);margin-top:8px;min-height:16px}
+
+/* ═══ APP SHELL ═══ */
+#app{display:none;min-height:100vh}
+#app.on{display:flex}
+
+/* ═══ SIDEBAR ═══ */
+.sb{width:var(--sb);background:linear-gradient(180deg,var(--dark),var(--dark2));display:flex;flex-direction:column;position:fixed;inset:0 auto 0 0;z-index:300;overflow-y:auto;box-shadow:4px 0 24px rgba(0,0,0,.3);transition:transform .3s var(--ease)}
+.sb-brand{padding:20px 16px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-logo-row{display:flex;align-items:center;gap:9px}
+.sb-em{font-size:26px}
+.sb-name{font-size:13px;font-weight:800;color:#fff;line-height:1.2}
+.sb-name span{color:var(--g3);display:block;font-size:9px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.sb-user{margin-top:9px;padding:7px 9px;background:rgba(255,255,255,.07);border-radius:var(--r-sm);font-size:11px;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:6px;word-break:break-all}
+.sb-dot{width:6px;height:6px;background:var(--g3);border-radius:50%;flex-shrink:0}
+.sb-sec{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.22);padding:14px 18px 4px}
+.nav{display:flex;align-items:center;gap:9px;padding:9px 12px;margin:1px 7px;border-radius:var(--r-sm);font-size:13px;font-weight:500;color:rgba(255,255,255,.58);border:none;background:transparent;width:calc(100% - 14px);text-align:left;cursor:pointer;transition:all .18s var(--ease)}
+.nav:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav.on{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;font-weight:600;box-shadow:0 2px 12px rgba(0,200,122,.3)}
+.nav .ni{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.n-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:20px}
+.sb-foot{margin-top:auto;padding:10px 7px;border-top:1px solid rgba(255,255,255,.07)}
+.sb-out,.sb-th{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;border-radius:var(--r-sm);font-size:13px;font-weight:500;border:none;background:transparent;cursor:pointer;transition:all .18s}
+.sb-out{color:rgba(255,82,82,.8)}.sb-out:hover{background:rgba(255,82,82,.12);color:#FF5252}
+.sb-th{color:rgba(255,255,255,.5);margin-bottom:3px}.sb-th:hover{background:rgba(255,255,255,.07);color:#fff}
+
+/* ═══ MAIN ═══ */
+.main{margin-left:var(--sb);flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{background:var(--card);border-bottom:1px solid var(--card-b);padding:0 22px;height:56px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:var(--sha)}
+.hbg{display:none;background:none;border:none;font-size:22px;color:var(--g1);padding:4px}
+.tb-title{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.01em}
+.tb-date{font-size:11px;color:var(--text3);margin-left:auto;font-family:var(--mono)}
+.wrap{padding:18px 22px}
+.page{display:none}.page.on{display:block}
+
+/* ═══ STAT CARDS ═══ */
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:18px}
+.sc{background:var(--card);border:1px solid var(--card-b);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sha);position:relative;overflow:hidden;transition:transform .2s var(--ease),box-shadow .2s;animation:fu .4s var(--ease) both}
+.sc:hover{transform:translateY(-2px);box-shadow:var(--sha-md)}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--g1),var(--g3))}
+.sc.red::before{background:linear-gradient(90deg,#E53E3E,#FC8181)}
+.sc.amb::before{background:linear-gradient(90deg,#D97706,#FBBF24)}
+.sc.blu::before{background:linear-gradient(90deg,#2B6CB0,#63B3ED)}
+.sc.pur::before{background:linear-gradient(90deg,#6B46C1,#A78BFA)}
+.sc.tel::before{background:linear-gradient(90deg,#0694A2,#22D3EE)}
+.sc-ico{font-size:22px;margin-bottom:7px}
+.sc-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:3px}
+.sc-val{font-size:19px;font-weight:700;font-family:var(--mono);color:var(--text);letter-spacing:-.02em}
+.sc-sub{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* ═══ CARD ═══ */
+.card{background:var(--card);border:1px solid var(--card-b);border-radius:var(--r);box-shadow:var(--sha);overflow:hidden;margin-bottom:16px;animation:fu .4s var(--ease) both;transition:background .2s}
+.ch{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--card-b);background:var(--g4)}
+.ct{font-size:13px;font-weight:700;color:var(--text);flex:1}
+.cb{padding:14px 16px}
+.cb.np{padding:0}
+
+/* ═══ FORMS ═══ */
+.fg{display:grid;gap:9px;margin-bottom:10px}
+.fg2{grid-template-columns:1fr 1fr}
+.fg3{grid-template-columns:1fr 1fr 1fr}
+.fg4{grid-template-columns:1fr 1fr 1fr 1fr}
+.fga{grid-template-columns:1fr 1fr auto}
+.fgp{display:flex;flex-direction:column;gap:3px}
+.fl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)}
+.fc{padding:9px 11px;font-size:13px;border:1.5px solid var(--card-b);border-radius:var(--r-sm);background:var(--bg2);color:var(--text);transition:border-color .2s,box-shadow .2s;width:100%;font-family:var(--font)}
+.fc:focus{outline:none;border-color:var(--g2);box-shadow:0 0 0 3px rgba(0,168,107,.11)}
+.fc::placeholder{color:var(--text3)}
+
+/* ═══ BUTTONS ═══ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:8px 14px;font-size:13px;font-weight:600;border-radius:var(--r-sm);border:1.5px solid var(--card-b);background:var(--card);color:var(--text);font-family:var(--font);transition:all .18s var(--ease);cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--g2)}
+.btn-g{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;border:none;box-shadow:0 2px 10px rgba(0,135,90,.3)}
+.btn-g:hover{box-shadow:0 4px 16px rgba(0,135,90,.4);transform:translateY(-1px)}
+.btn-r{background:var(--red);color:#fff;border:none}.btn-r:hover{background:#C53030}
+.btn-a{background:var(--amber);color:#fff;border:none}
+.btn-b{background:var(--blue);color:#fff;border:none}.btn-b:hover{background:#1A4E8C}
+.btn-ol{background:transparent;border-color:var(--g2);color:var(--g1)}.btn-ol:hover{background:var(--g4)}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px}
+.btn-ico{padding:6px;border-radius:6px}
+.btn-gh{background:transparent;border:none;color:var(--text2)}.btn-gh:hover{color:var(--text);background:var(--g4)}
+.btn-fw{width:100%}
+.btn-dn{background:var(--red-l);color:var(--red);border-color:rgba(229,62,62,.25)}.btn-dn:hover{background:var(--red);color:#fff}
+
+/* ═══ TABLE ═══ */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:var(--g4);padding:9px 11px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);text-align:left;border-bottom:2px solid var(--card-b);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--card-b);transition:background .15s}
+tbody tr:hover{background:var(--g4)}
+tbody td{padding:9px 11px;color:var(--text);vertical-align:middle}
+tbody tr:last-child{border-bottom:none}
+.te{text-align:center;padding:28px;color:var(--text3);font-size:13px}
+
+/* ═══ BADGE ═══ */
+.badge{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:3px 7px;border-radius:20px}
+.bg{background:var(--g5);color:var(--g1)}
+.br{background:var(--red-l);color:var(--red)}
+.ba{background:var(--amber-l);color:var(--amber)}
+.bb{background:var(--blue-l);color:var(--blue)}
+
+/* ═══ ACCOUNT CARDS ═══ */
+.ag{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:11px;margin-bottom:16px}
+.ac{background:var(--card);border:1px solid var(--card-b);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sha);position:relative;overflow:hidden;transition:all .2s var(--ease)}
+.ac:hover{transform:translateY(-2px);box-shadow:var(--sha-md)}
+.ac::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+.ac.cash::after{background:linear-gradient(90deg,var(--g1),var(--g3))}
+.ac.online::after{background:linear-gradient(90deg,#2B6CB0,#63B3ED)}
+.ac.upi::after{background:linear-gradient(90deg,#6B46C1,#A78BFA)}
+.ac.bank::after{background:linear-gradient(90deg,#D97706,#FBBF24)}
+.ac-ico{font-size:22px;margin-bottom:7px}
+.ac-nm{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:4px}
+.ac-bal{font-size:20px;font-weight:800;font-family:var(--mono);color:var(--text);letter-spacing:-.02em}
+.ac-sub{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* ═══ CUSTOMER CARD ═══ */
+.cc{background:var(--card);border:1px solid var(--card-b);border-radius:var(--r);padding:12px 14px;box-shadow:var(--sha);margin-bottom:8px;display:flex;align-items:center;gap:10px;transition:all .18s var(--ease);cursor:pointer}
+.cc:hover{transform:translateX(3px);border-color:var(--g2)}
+.cav{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--g1),var(--g3));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.ci{flex:1;min-width:0}
+.cn{font-size:13px;font-weight:600;color:var(--text)}
+.cm{font-size:11px;color:var(--text3);margin-top:1px}
+.cb-r{font-size:14px;font-weight:700;font-family:var(--mono);color:var(--red);flex-shrink:0}
+
+/* ═══ MODAL ═══ */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);z-index:500;align-items:center;justify-content:center;padding:14px}
+.mo.on{display:flex}
+.mbox{background:var(--bg2);border:1px solid var(--card-b);border-radius:var(--r-lg);padding:22px;width:100%;max-width:480px;box-shadow:0 24px 64px rgba(0,0,0,.3);animation:fu .25s var(--ease);max-height:92vh;overflow-y:auto}
+.mt{font-size:17px;font-weight:800;color:var(--text);margin-bottom:3px}
+.ms{font-size:12px;color:var(--text3);margin-bottom:18px}
+.ma{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+
+/* ═══ ALERT ═══ */
+.al{display:flex;align-items:center;gap:7px;padding:9px 12px;border-radius:var(--r-sm);font-size:13px;margin-bottom:8px}
+.al-r{background:var(--red-l);color:var(--red);border:1px solid rgba(229,62,62,.2)}
+.al-g{background:var(--g5);color:var(--g1);border:1px solid rgba(0,135,90,.2)}
+.al-a{background:var(--amber-l);color:var(--amber);border:1px solid rgba(217,119,6,.2)}
+
+/* ═══ PROGRESS ═══ */
+.pt{height:6px;background:var(--g5);border-radius:10px;overflow:hidden}
+.pf{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--g1),var(--g3));transition:width .6s var(--ease)}
+.pf.red{background:linear-gradient(90deg,var(--red),#FC8181)}
+.pf.amb{background:linear-gradient(90deg,var(--amber),#FBBF24)}
+
+/* ═══ TOAST ═══ */
+#toast{position:fixed;bottom:18px;right:18px;z-index:9999;padding:10px 16px;border-radius:var(--r);font-size:13px;font-weight:600;font-family:var(--font);box-shadow:0 8px 28px rgba(0,0,0,.25);animation:fu .3s var(--ease);max-width:300px}
+.tg{background:var(--g1);color:#fff}
+.tr{background:var(--red);color:#fff}
+.ta{background:var(--amber);color:#fff}
+
+/* ═══ MISC ═══ */
+.sl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:8px}
+.dv{border:none;border-top:1px solid var(--card-b);margin:12px 0}
+.mono{font-family:var(--mono)}
+.tg1{color:var(--g1)}.tr1{color:var(--red)}.ta1{color:var(--amber)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.fb{display:flex;align-items:center;justify-content:space-between}
+.fg-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ts{font-size:12px;color:var(--text2)}
+.fw7{font-weight:700}
+.pt-g{background:var(--red-l);color:var(--red);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;display:inline-block}
+.pr-g{background:var(--g5);color:var(--g1);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;display:inline-block}
+.sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:299}
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.s1{animation-delay:.05s}.s2{animation-delay:.10s}.s3{animation-delay:.15s}
+.s4{animation-delay:.20s}.s5{animation-delay:.25s}.s6{animation-delay:.30s}
+.s7{animation-delay:.35s}.s8{animation-delay:.40s}
+
+/* ═══ RESPONSIVE ═══ */
+.sb-ov.on{display:block}
+@media(max-width:900px){
+  .sb{transform:translateX(-100%)}.sb.on{transform:none}
+  .main{margin-left:0}.hbg{display:flex}
+  .topbar{padding:0 12px}.wrap{padding:12px}
+  .sg{grid-template-columns:repeat(2,1fr)}
+  .g2,.g3{grid-template-columns:1fr}
+  .fg3,.fg4{grid-template-columns:1fr 1fr}
+}
+@media(max-width:500px){
+  .sg{grid-template-columns:1fr 1fr}
+  .fg2,.fg3,.fg4{grid-template-columns:1fr}
+  .ag{grid-template-columns:1fr 1fr}
+  .mbox{padding:16px}.tb-date{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOADING ══════════ -->
+<div id="loading-screen">
+  <div style="font-size:48px">🌿</div>
+  <div class="spin"></div>
+  <div class="load-txt">Loading Bahuchar Pan Shop Manager…</div>
+</div>
+
+<!-- ══════════ FIREBASE SETUP SCREEN ══════════ -->
+<div id="setup-screen" style="display:none">
+  <div class="setup-box">
+    <div style="font-size:36px;margin-bottom:8px">🔧</div>
+    <div class="setup-title">Firebase Setup Required</div>
+    <div class="setup-sub">Paste your Firebase project config below. This is a one-time setup.</div>
+
+    <div class="step">
+      <strong>Step 1 — Create Firebase Project</strong>
+      Go to <a href="https://console.firebase.google.com" target="_blank" style="color:var(--g1)">console.firebase.google.com</a> → Add project → name it anything
+    </div>
+    <div class="step">
+      <strong>Step 2 — Enable Authentication</strong>
+      Authentication → Get Started → Email/Password → Enable → Add a user (your email + password)
+    </div>
+    <div class="step">
+      <strong>Step 3 — Create Firestore Database</strong>
+      Firestore Database → Create database → Production mode → Choose region → Enable
+    </div>
+    <div class="step">
+      <strong>Step 4 — Get Config</strong>
+      Project Settings ⚙️ → Scroll to "Your apps" → Web icon → Register → Copy the firebaseConfig object values below
+    </div>
+
+    <hr style="margin:16px 0;border-color:#eee">
+    <div style="font-size:12px;font-weight:700;color:var(--g1);margin-bottom:10px">Enter Your Firebase Config:</div>
+
+    <div class="fg fg2">
+      <div class="fgp"><label class="fl">API Key</label><input class="fc" id="cfg-apikey" placeholder="AIzaSy..."/></div>
+      <div class="fgp"><label class="fl">Auth Domain</label><input class="fc" id="cfg-auth" placeholder="project.firebaseapp.com"/></div>
+    </div>
+    <div class="fg fg2">
+      <div class="fgp"><label class="fl">Project ID</label><input class="fc" id="cfg-pid" placeholder="your-project-id"/></div>
+      <div class="fgp"><label class="fl">Storage Bucket</label><input class="fc" id="cfg-sb" placeholder="project.appspot.com"/></div>
+    </div>
+    <div class="fg fg2">
+      <div class="fgp"><label class="fl">Messaging Sender ID</label><input class="fc" id="cfg-msid" placeholder="123456789"/></div>
+      <div class="fgp"><label class="fl">App ID</label><input class="fc" id="cfg-appid" placeholder="1:123:web:abc..."/></div>
+    </div>
+    <button class="setup-btn" onclick="saveConfig()">💾 Save & Connect to Firebase</button>
+    <div id="setup-err"></div>
+  </div>
+</div>
+
+<!-- ══════════ LOGIN ══════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="l-logo">🌿</div>
+    <div class="l-title">Bahuchar Pan Shop</div>
+    <div class="l-sub">Manager — Secure Business Software</div>
+    <input class="l-fc" id="l-email" type="email" placeholder="Email Address" autocomplete="email"/>
+    <input class="l-fc" id="l-pass" type="password" placeholder="Password" autocomplete="current-password"/>
+    <button class="l-btn" id="l-btn" onclick="doLogin()">🔐 Login to Shop Manager</button>
+    <div id="l-err"></div>
+    <div style="font-size:11px;color:#aaa;margin-top:10px">Secured by Firebase Cloud</div>
+    <button onclick="resetConfig()" style="margin-top:8px;background:none;border:none;font-size:11px;color:#ccc;cursor:pointer;text-decoration:underline">Change Firebase Config</button>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside class="sb" id="sb">
+    <div class="sb-brand">
+      <div class="sb-logo-row">
+        <span class="sb-em">🌿</span>
+        <div class="sb-name">Bahuchar Pan Shop<span>Manager</span></div>
+      </div>
+      <div class="sb-user"><span class="sb-dot"></span><span id="sb-em" style="flex:1;overflow:hidden;text-overflow:ellipsis">…</span></div>
+    </div>
+    <div class="sb-sec">Main</div>
+    <button class="nav on" onclick="go('dashboard')" id="n-dashboard"><span class="ni">🏠</span>Dashboard</button>
+    <div class="sb-sec">Transactions</div>
+    <button class="nav" onclick="go('sales')" id="n-sales"><span class="ni">🧾</span>Sales Entry</button>
+    <button class="nav" onclick="go('purchase')" id="n-purchase"><span class="ni">🛒</span>Purchase Entry</button>
+    <button class="nav" onclick="go('expenses')" id="n-expenses"><span class="ni">💳</span>Daily Expenses</button>
+    <div class="sb-sec">Customers</div>
+    <button class="nav" onclick="go('customers')" id="n-customers"><span class="ni">👥</span>Credit Ledger<span class="n-badge" id="pend-badge">0</span></button>
+    <div class="sb-sec">Accounts</div>
+    <button class="nav" onclick="go('accounts')" id="n-accounts"><span class="ni">🏦</span>Accounts</button>
+    <button class="nav" onclick="go('transfers')" id="n-transfers"><span class="ni">↔️</span>Transfers</button>
+    <div class="sb-sec">Inventory</div>
+    <button class="nav" onclick="go('stock')" id="n-stock"><span class="ni">📦</span>Stock Manager</button>
+    <div class="sb-sec">Reports</div>
+    <button class="nav" onclick="go('reports')" id="n-reports"><span class="ni">📊</span>Reports</button>
+    <div class="sb-foot">
+      <button class="sb-th" onclick="toggleTheme()"><span>🌙</span><span id="th-lbl">Dark Mode</span></button>
+      <button class="sb-out" onclick="doLogout()">🚪 Logout</button>
+    </div>
+  </aside>
+  <div class="sb-ov" id="sb-ov" onclick="closeSb()"></div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <header class="topbar">
+      <button class="hbg" onclick="toggleSb()">☰</button>
+      <div class="tb-title" id="tb-title">Dashboard</div>
+      <div class="tb-date" id="tb-date"></div>
+    </header>
+
+    <div class="wrap">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="page on" id="page-dashboard">
+      <div class="sg">
+        <div class="sc s1"><div class="sc-ico">💵</div><div class="sc-lbl">Cash Balance</div><div class="sc-val" id="d-cash">₹0</div><div class="sc-sub">In hand</div></div>
+        <div class="sc blu s2"><div class="sc-ico">📱</div><div class="sc-lbl">Online Balance</div><div class="sc-val" id="d-online">₹0</div><div class="sc-sub">UPI + Bank + Online</div></div>
+        <div class="sc s3"><div class="sc-ico">📈</div><div class="sc-lbl">Total Sales</div><div class="sc-val" id="d-sales">₹0</div><div class="sc-sub" id="d-sales-c">0 entries</div></div>
+        <div class="sc red s4"><div class="sc-ico">🛒</div><div class="sc-lbl">Total Purchase</div><div class="sc-val" id="d-purch">₹0</div><div class="sc-sub" id="d-purch-c">0 entries</div></div>
+        <div class="sc amb s5"><div class="sc-ico">✨</div><div class="sc-lbl">Total Profit</div><div class="sc-val" id="d-profit">₹0</div><div class="sc-sub">Sales − Purchase − Expense</div></div>
+        <div class="sc pur s6"><div class="sc-ico">👥</div><div class="sc-lbl">Credit Pending</div><div class="sc-val" id="d-credit">₹0</div><div class="sc-sub">From customers</div></div>
+        <div class="sc tel s7"><div class="sc-ico">☀️</div><div class="sc-lbl">Today Sales</div><div class="sc-val" id="d-today">₹0</div><div class="sc-sub" id="d-today-c">0 entries</div></div>
+        <div class="sc s8"><div class="sc-ico">🏪</div><div class="sc-lbl">Net Balance</div><div class="sc-val" id="d-net">₹0</div><div class="sc-sub">Cash + Online</div></div>
+      </div>
+      <div id="dash-alerts"></div>
+      <div class="g2">
+        <div class="card"><div class="ch"><span class="ct">📊 7-Day Cash Flow</span></div><div class="cb"><div style="position:relative;height:210px"><canvas id="ch-dash"></canvas></div></div></div>
+        <div class="card"><div class="ch"><span class="ct">🥧 Expense Breakdown</span></div><div class="cb"><div style="position:relative;height:210px"><canvas id="ch-exp-pie"></canvas></div></div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="ch"><span class="ct">⚠️ Top Pending Credits</span><button class="btn btn-sm btn-ol" onclick="go('customers')">All →</button></div><div class="cb np" id="d-pend" style="max-height:240px;overflow-y:auto"></div></div>
+        <div class="card"><div class="ch"><span class="ct">⚡ Recent Transactions</span></div><div class="cb np" id="d-recent" style="max-height:240px;overflow-y:auto"></div></div>
+      </div>
+      <div class="card"><div class="ch"><span class="ct">📦 Low Stock Alerts</span></div><div class="cb np" id="d-lowstock"></div></div>
+    </div>
+
+    <!-- ══ SALES ══ -->
+    <div class="page" id="page-sales">
+      <div class="card">
+        <div class="ch"><span class="ct">🧾 New Sale Entry</span></div>
+        <div class="cb">
+          <div class="fg fg3">
+            <div class="fgp"><label class="fl">Customer Name</label><input class="fc" id="s-cn" placeholder="Customer / Walk-in" list="dl-cust"/><datalist id="dl-cust"></datalist></div>
+            <div class="fgp"><label class="fl">Product</label><input class="fc" id="s-pr" placeholder="Product name" list="dl-prod"/><datalist id="dl-prod"></datalist></div>
+            <div class="fgp"><label class="fl">Quantity</label><input class="fc" id="s-qty" type="number" min="0.1" step="0.1" placeholder="1"/></div>
+          </div>
+          <div class="fg fg3">
+            <div class="fgp"><label class="fl">Amount (₹)</label><input class="fc" id="s-amt" type="number" min="0" placeholder="0"/></div>
+            <div class="fgp"><label class="fl">Payment Mode</label>
+              <select class="fc" id="s-mode"><option value="cash">💵 Cash</option><option value="online">📱 Online</option><option value="upi">🔵 UPI</option><option value="credit">📋 Credit (Udhar)</option></select>
+            </div>
+            <div class="fgp"><label class="fl">Date</label><input class="fc" id="s-dt" type="date"/></div>
+          </div>
+          <div class="fg fg2">
+            <div class="fgp"><label class="fl">Note (optional)</label><input class="fc" id="s-note" placeholder="Any note…"/></div>
+            <div class="fgp"><label class="fl">&nbsp;</label><button class="btn btn-g btn-fw" onclick="addSale()">✅ Add Sale</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch">
+          <span class="ct">📋 Sales History</span>
+          <div class="fg-r">
+            <input class="fc" id="s-srch" placeholder="🔍 Search…" style="width:150px" oninput="renderSales()"/>
+            <select class="fc btn-sm" id="s-fmode" onchange="renderSales()"><option value="all">All Modes</option><option value="cash">Cash</option><option value="online">Online</option><option value="upi">UPI</option><option value="credit">Credit</option></select>
+            <button class="btn btn-sm btn-ol" onclick="expSalesCSV()">⬇ CSV</button>
+          </div>
+        </div>
+        <div class="cb np"><div class="tw"><table><thead><tr><th>Date</th><th>Customer</th><th>Product</th><th>Qty</th><th>Amount</th><th>Mode</th><th>Note</th><th></th></tr></thead><tbody id="s-tbody"></tbody></table></div></div>
+      </div>
+    </div>
+
+    <!-- ══ PURCHASE ══ -->
+    <div class="page" id="page-purchase">
+      <div class="card">
+        <div class="ch"><span class="ct">🛒 New Purchase Entry</span></div>
+        <div class="cb">
+          <div class="fg fg3">
+            <div class="fgp"><label class="fl">Supplier Name</label><input class="fc" id="p-sup" placeholder="Supplier name"/></div>
+            <div class="fgp"><label class="fl">Product</label><input class="fc" id="p-pr" placeholder="Product name"/></div>
+            <div class="fgp"><label class="fl">Quantity</label><input class="fc" id="p-qty" type="number" min="0" placeholder="0"/></div>
+          </div>
+          <div class="fg fg3">
+            <div class="fgp"><label class="fl">Amount (₹)</label><input class="fc" id="p-amt" type="number" min="0" placeholder="0"/></div>
+            <div class="fgp"><label class="fl">Payment Mode</label>
+              <select class="fc" id="p-mode"><option value="cash">💵 Cash</option><option value="online">📱 Online</option><option value="upi">🔵 UPI</option><option value="credit">📋 Udhar</option></select>
+            </div>
+            <div class="fgp"><label class="fl">Date</label><input class="fc" id="p-dt" type="date"/></div>
+          </div>
+          <div class="fg fg2">
+            <div class="fgp"><label class="fl">Note</label><input class="fc" id="p-note" placeholder="Optional…"/></div>
+            <div class="fgp"><label class="fl">&nbsp;</label><button class="btn btn-r btn-fw" onclick="addPurchase()">🛒 Add Purchase</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">📦 Purchase History</span></div>
+        <div class="cb np"><div class="tw"><table><thead><tr><th>Date</th><th>Supplier</th><th>Product</th><th>Qty</th><th>Amount</th><th>Mode</th><th>Note</th><th></th></tr></thead><tbody id="p-tbody"></tbody></table></div></div>
+      </div>
+    </div>
+
+    <!-- ══ EXPENSES ══ -->
+    <div class="page" id="page-expenses">
+      <div class="card">
+        <div class="ch"><span class="ct">💳 Add Daily Expense</span></div>
+        <div class="cb">
+          <div class="fg fg3">
+            <div class="fgp"><label class="fl">Expense Name</label><input class="fc" id="e-nm" placeholder="e.g. Tea, Transport…"/></div>
+            <div class="fgp"><label class="fl">Category</label>
+              <select class="fc" id="e-cat">
+                <option value="Tea/Food">☕ Tea / Food</option><option value="Transport">🚗 Transport</option>
+                <option value="Electricity">⚡ Electricity</option><option value="Rent">🏠 Rent</option>
+                <option value="Salary">👷 Salary</option><option value="Stock">📦 Stock</option>
+                <option value="Maintenance">🔧 Maintenance</option><option value="Other">📋 Other</option>
+              </select>
+            </div>
+            <div class="fgp"><label class="fl">Amount (₹)</label><input class="fc" id="e-amt" type="number" min="0" placeholder="0"/></div>
+          </div>
+          <div class="fg fg3">
+            <div class="fgp"><label class="fl">Payment Mode</label>
+              <select class="fc" id="e-mode"><option value="cash">💵 Cash</option><option value="online">📱 Online</option><option value="upi">🔵 UPI</option></select>
+            </div>
+            <div class="fgp"><label class="fl">Date</label><input class="fc" id="e-dt" type="date"/></div>
+            <div class="fgp"><label class="fl">&nbsp;</label><button class="btn btn-a btn-fw" onclick="addExpense()">+ Add Expense</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="ch"><span class="ct">📊 Category Breakdown</span></div><div class="cb"><div style="position:relative;height:210px"><canvas id="ch-ecat"></canvas></div></div></div>
+        <div class="card"><div class="ch"><span class="ct">📋 Expense History</span></div><div class="cb np" style="max-height:300px;overflow-y:auto"><div class="tw"><table><thead><tr><th>Date</th><th>Name</th><th>Category</th><th>Mode</th><th>Amount</th><th></th></tr></thead><tbody id="e-tbody"></tbody></table></div></div></div>
+      </div>
+    </div>
+
+    <!-- ══ CUSTOMERS ══ -->
+    <div class="page" id="page-customers">
+      <div class="fg-r" style="margin-bottom:12px">
+        <div style="flex:1"><input class="fc" id="c-srch" placeholder="🔍 Search customer by name or phone…" oninput="renderCustomers()"/></div>
+        <button class="btn btn-g" onclick="openMo('mo-addcust')">+ Add Customer</button>
+      </div>
+      <div class="g2">
+        <div>
+          <div class="card" style="margin-bottom:0"><div class="ch"><span class="ct">👥 Customers</span><span class="badge br" id="tot-pend">₹0 pending</span></div><div id="c-list" style="max-height:500px;overflow-y:auto"></div></div>
+        </div>
+        <div class="card" id="c-detail" style="display:none">
+          <div class="ch"><span class="ct" id="c-det-name">Detail</span><button class="btn btn-sm btn-gh" onclick="closeCustDet()">✕</button></div>
+          <div class="cb" id="c-det-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ACCOUNTS ══ -->
+    <div class="page" id="page-accounts">
+      <div class="ag" id="acc-cards"></div>
+      <div class="card">
+        <div class="ch"><span class="ct">📋 All Account Transactions</span>
+          <select class="fc btn-sm" id="acc-filt" style="width:155px" onchange="renderAccTxns()"><option value="all">All Accounts</option><option value="cash">Cash</option><option value="online">Online</option><option value="upi">UPI</option><option value="bank">Bank</option></select>
+        </div>
+        <div class="cb np"><div class="tw"><table><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Account</th><th>Credit (+)</th><th>Debit (−)</th></tr></thead><tbody id="acc-tbody"></tbody></table></div></div>
+      </div>
+    </div>
+
+    <!-- ══ TRANSFERS ══ -->
+    <div class="page" id="page-transfers">
+      <div class="card" style="max-width:480px;margin:0 auto 16px">
+        <div class="ch"><span class="ct">↔️ Transfer Between Accounts</span></div>
+        <div class="cb">
+          <div class="fg fg2">
+            <div class="fgp"><label class="fl">From Account</label><select class="fc" id="tr-from"><option value="cash">💵 Cash</option><option value="online">📱 Online</option><option value="upi">🔵 UPI</option><option value="bank">🏦 Bank</option></select></div>
+            <div class="fgp"><label class="fl">To Account</label><select class="fc" id="tr-to"><option value="online">📱 Online</option><option value="cash">💵 Cash</option><option value="upi">🔵 UPI</option><option value="bank">🏦 Bank</option></select></div>
+          </div>
+          <div class="fg fg2">
+            <div class="fgp"><label class="fl">Amount (₹)</label><input class="fc" id="tr-amt" type="number" min="0" placeholder="0"/></div>
+            <div class="fgp"><label class="fl">Date</label><input class="fc" id="tr-dt" type="date"/></div>
+          </div>
+          <div class="fgp" style="margin-bottom:10px"><label class="fl">Note</label><input class="fc" id="tr-note" placeholder="Optional"/></div>
+          <button class="btn btn-b btn-fw" onclick="doTransfer()">↔️ Transfer Now</button>
+        </div>
+      </div>
+      <div class="card"><div class="ch"><span class="ct">📋 Transfer History</span></div><div class="cb np"><div class="tw"><table><thead><tr><th>Date</th><th>From</th><th>To</th><th>Amount</th><th>Note</th><th></th></tr></thead><tbody id="tr-tbody"></tbody></table></div></div></div>
+    </div>
+
+    <!-- ══ STOCK ══ -->
+    <div class="page" id="page-stock">
+      <div class="card">
+        <div class="ch"><span class="ct">📦 Add / Update Product</span></div>
+        <div class="cb">
+          <div class="fg fg4">
+            <div class="fgp"><label class="fl">Product Name</label><input class="fc" id="st-nm" placeholder="Product name"/></div>
+            <div class="fgp"><label class="fl">Category</label><input class="fc" id="st-cat" placeholder="Pan, Gutka…"/></div>
+            <div class="fgp"><label class="fl">Quantity</label><input class="fc" id="st-qty" type="number" min="0" placeholder="0"/></div>
+            <div class="fgp"><label class="fl">Unit</label><select class="fc" id="st-unit"><option>Pcs</option><option>Kg</option><option>Box</option><option>Packet</option><option>Bundle</option><option>Dozen</option></select></div>
+          </div>
+          <div class="fg fg4">
+            <div class="fgp"><label class="fl">Buy Price ₹</label><input class="fc" id="st-buy" type="number" min="0" placeholder="0"/></div>
+            <div class="fgp"><label class="fl">Sell Price ₹</label><input class="fc" id="st-sell" type="number" min="0" placeholder="0"/></div>
+            <div class="fgp"><label class="fl">Low Stock Alert</label><input class="fc" id="st-low" type="number" min="0" placeholder="5"/></div>
+            <div class="fgp"><label class="fl">&nbsp;</label><button class="btn btn-g btn-fw" onclick="addProduct()">✅ Save</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">📋 Inventory</span><input class="fc" id="st-srch" placeholder="🔍 Search…" style="width:170px" oninput="renderStock()"/></div>
+        <div class="cb np"><div class="tw"><table><thead><tr><th>Product</th><th>Category</th><th>Qty</th><th>Unit</th><th>Buy ₹</th><th>Sell ₹</th><th>Margin</th><th>Status</th><th></th></tr></thead><tbody id="st-tbody"></tbody></table></div></div>
+      </div>
+    </div>
+
+    <!-- ══ REPORTS ══ -->
+    <div class="page" id="page-reports">
+      <div class="card">
+        <div class="ch"><span class="ct">📊 Generate Report</span></div>
+        <div class="cb">
+          <div class="fg-r">
+            <div class="fgp"><label class="fl">From Date</label><input class="fc" id="r-from" type="date"/></div>
+            <div class="fgp"><label class="fl">To Date</label><input class="fc" id="r-to" type="date"/></div>
+            <div class="fgp"><label class="fl">&nbsp;</label><button class="btn btn-g" onclick="genReport()">📊 Generate</button></div>
+            <div class="fgp"><label class="fl">&nbsp;</label><button class="btn btn-b" onclick="expRepPDF()">⬇ PDF</button></div>
+            <div class="fgp"><label class="fl">&nbsp;</label><button class="btn btn-ol" onclick="expRepCSV()">⬇ CSV</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="sg" id="r-stats"></div>
+      <div class="g2">
+        <div class="card"><div class="ch"><span class="ct">📈 Sales Chart</span></div><div class="cb"><div style="position:relative;height:230px"><canvas id="ch-rsales"></canvas></div></div></div>
+        <div class="card"><div class="ch"><span class="ct">📉 Profit / Loss</span></div><div class="cb"><div style="position:relative;height:230px"><canvas id="ch-rprofit"></canvas></div></div></div>
+      </div>
+      <div class="card"><div class="ch"><span class="ct">📋 Transactions</span></div><div class="cb np"><div class="tw"><table><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th><th>Mode</th></tr></thead><tbody id="r-tbody"></tbody></table></div></div></div>
+      <div class="card"><div class="ch"><span class="ct">👥 Customer Credit Report</span></div><div class="cb np"><div class="tw"><table><thead><tr><th>Customer</th><th>Phone</th><th>Total Credit</th><th>Total Paid</th><th>Pending</th><th>Last Date</th></tr></thead><tbody id="r-cred-tbody"></tbody></table></div></div></div>
+    </div>
+
+    </div><!-- /wrap -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══ MODALS ══ -->
+<div class="mo" id="mo-addcust">
+  <div class="mbox">
+    <div class="mt">+ Add Customer</div><div class="ms">Create customer credit account</div>
+    <div class="fg fg2">
+      <div class="fgp"><label class="fl">Customer Name *</label><input class="fc" id="c-nm" placeholder="Full name"/></div>
+      <div class="fgp"><label class="fl">Mobile Number</label><input class="fc" id="c-ph" type="tel" placeholder="9876543210"/></div>
+    </div>
+    <div class="fg fg2">
+      <div class="fgp"><label class="fl">Address</label><input class="fc" id="c-addr" placeholder="Optional"/></div>
+      <div class="fgp"><label class="fl">Credit Limit ₹</label><input class="fc" id="c-lim" type="number" placeholder="5000"/></div>
+    </div>
+    <div class="ma"><button class="btn btn-gh" onclick="closeMo('mo-addcust')">Cancel</button><button class="btn btn-g" onclick="addCustomer()">✅ Add Customer</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-pay">
+  <div class="mbox">
+    <div class="mt">💰 Payment Received</div><div class="ms" id="pay-ms">From customer</div>
+    <input type="hidden" id="pay-cid"/>
+    <div class="fg fg2">
+      <div class="fgp"><label class="fl">Amount ₹</label><input class="fc" id="pay-amt" type="number" min="0" placeholder="0"/></div>
+      <div class="fgp"><label class="fl">Mode</label><select class="fc" id="pay-mode"><option value="cash">💵 Cash</option><option value="online">📱 Online</option><option value="upi">🔵 UPI</option></select></div>
+    </div>
+    <div class="fg fg2">
+      <div class="fgp"><label class="fl">Date</label><input class="fc" id="pay-dt" type="date"/></div>
+      <div class="fgp"><label class="fl">Note</label><input class="fc" id="pay-note" placeholder="Optional"/></div>
+    </div>
+    <div class="ma"><button class="btn btn-gh" onclick="closeMo('mo-pay')">Cancel</button><button class="btn btn-g" onclick="addPayment()">✅ Record Payment</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-bill">
+  <div class="mbox" style="max-width:380px">
+    <div class="mt">🖨️ Print Bill</div>
+    <div id="bill-content" style="font-family:monospace;font-size:12px;border:1px solid #ccc;padding:14px;border-radius:8px;white-space:pre-wrap;background:#fff;color:#000;margin-bottom:14px"></div>
+    <div class="ma"><button class="btn btn-gh" onclick="closeMo('mo-bill')">Close</button><button class="btn btn-g" onclick="window.print()">🖨️ Print</button></div>
+  </div>
+</div>
+
+<!-- ══════════ SCRIPTS — loaded at end of body for reliability ══════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   BAHUCHAR PAN SHOP MANAGER
+   All scripts run AFTER DOM + external SDKs are loaded
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Helpers (defined first, used everywhere) ── */
+const fmt   = n => Math.abs(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+const today = () => new Date().toISOString().split('T')[0];
+const setEl = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+const clr   = ids => ids.forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+const qs    = id => document.getElementById(id);
+
+/* ── Global state ── */
+let UID = null, auth = null, fdb = null;
+let S = { sales:[], purchases:[], expenses:[], customers:[], payments:[], transfers:[], products:[], accounts:{ cash:0, online:0, upi:0, bank:0 } };
+let CHS = {};     // chart instances
+const LS_CFG = 'bps_firebase_cfg';
+
+/* ════════════════════════════════════════════════════════════════
+   FIREBASE CONFIG — stored in localStorage, entered once by user
+   ════════════════════════════════════════════════════════════════ */
+function getSavedConfig() {
+  try { const c = localStorage.getItem(LS_CFG); return c ? JSON.parse(c) : null; } catch(e) { return null; }
+}
+
+function saveConfig() {
+  const cfg = {
+    apiKey:            qs('cfg-apikey')?.value.trim(),
+    authDomain:        qs('cfg-auth')?.value.trim(),
+    projectId:         qs('cfg-pid')?.value.trim(),
+    storageBucket:     qs('cfg-sb')?.value.trim(),
+    messagingSenderId: qs('cfg-msid')?.value.trim(),
+    appId:             qs('cfg-appid')?.value.trim()
+  };
+  const errEl = qs('setup-err');
+  if (!cfg.apiKey || !cfg.projectId || !cfg.authDomain) {
+    if (errEl) errEl.textContent = '❌ API Key, Auth Domain and Project ID are required.';
+    return;
+  }
+  localStorage.setItem(LS_CFG, JSON.stringify(cfg));
+  if (errEl) errEl.textContent = '';
+  initFirebase(cfg);
+}
+
+function resetConfig() {
+  if (!confirm('This will remove your Firebase config. You will need to re-enter it.')) return;
+  localStorage.removeItem(LS_CFG);
+  location.reload();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FIREBASE INIT — called after config is available
+   ════════════════════════════════════════════════════════════════ */
+function initFirebase(cfg) {
+  try {
+    // Initialize (or reuse existing app)
+    let app;
+    try { app = firebase.app(); }
+    catch(e) { app = firebase.initializeApp(cfg); }
+
+    auth = firebase.auth();
+    fdb  = firebase.firestore();
+
+    // Enable offline persistence for reliability
+    fdb.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+
+    // Show loading while Firebase connects
+    qs('setup-screen').style.display = 'none';
+    qs('loading-screen').style.display = 'flex';
+
+    // Auth state listener
+    auth.onAuthStateChanged(user => {
+      qs('loading-screen').style.display = 'none';
+      if (user) {
+        UID = user.uid;
+        qs('login-screen').style.display = 'none';
+        qs('app').classList.add('on');
+        qs('sb-em').textContent = user.email;
+        startApp();
+      } else {
+        qs('login-screen').style.display = 'flex';
+        qs('app').classList.remove('on');
+      }
+    });
+
+  } catch(err) {
+    qs('loading-screen').style.display = 'none';
+    qs('setup-screen').style.display = 'flex';
+    const errEl = qs('setup-err');
+    if (errEl) errEl.textContent = '❌ Firebase error: ' + err.message + ' — Check your config values.';
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   BOOT — runs when page loads
+   ════════════════════════════════════════════════════════════════ */
+window.addEventListener('load', () => {
+  // Check if Firebase SDK loaded correctly
+  if (typeof firebase === 'undefined') {
+    qs('loading-screen').style.display = 'none';
+    document.body.innerHTML = `<div style="font-family:Arial;padding:40px;text-align:center;background:#f0faf5;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+      <div style="font-size:48px">⚠️</div>
+      <h2 style="color:#00875A">Firebase SDK Failed to Load</h2>
+      <p style="color:#4A6E5E;max-width:400px">Please check your internet connection and reload the page. Firebase requires an active internet connection to load.</p>
+      <button onclick="location.reload()" style="background:#00875A;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:700">🔄 Reload Page</button>
+    </div>`;
+    return;
+  }
+
+  const cfg = getSavedConfig();
+  if (cfg && cfg.apiKey && cfg.apiKey !== 'YOUR_API_KEY') {
+    initFirebase(cfg);
+  } else {
+    qs('loading-screen').style.display = 'none';
+    qs('setup-screen').style.display = 'flex';
+  }
+});
+
+/* ════════════════════════════════════════════════════════════════
+   AUTH
+   ════════════════════════════════════════════════════════════════ */
+async function doLogin() {
+  const email = qs('l-email').value.trim();
+  const pass  = qs('l-pass').value;
+  const err   = qs('l-err');
+  const btn   = qs('l-btn');
+  err.textContent = '';
+  if (!email || !pass) { err.textContent = 'Enter email and password.'; return; }
+  btn.textContent = '⏳ Logging in…';
+  btn.disabled = true;
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+  } catch(e) {
+    err.textContent = authErr(e.code);
+    btn.textContent = '🔐 Login to Shop Manager';
+    btn.disabled = false;
+  }
+}
+
+async function doLogout() {
+  if (!confirm('Logout from Bahuchar Pan Shop Manager?')) return;
+  // Detach all Firestore listeners first
+  if (window._unsubAll) window._unsubAll.forEach(fn => fn());
+  await auth.signOut();
+  S = { sales:[], purchases:[], expenses:[], customers:[], payments:[], transfers:[], products:[], accounts:{ cash:0, online:0, upi:0, bank:0 } };
+  toast('Logged out', 'g');
+}
+
+function authErr(code) {
+  return ({
+    'auth/invalid-credential':'Wrong email or password.',
+    'auth/user-not-found':'No account with this email.',
+    'auth/wrong-password':'Incorrect password.',
+    'auth/too-many-requests':'Too many attempts. Try later.',
+    'auth/invalid-email':'Invalid email format.',
+    'auth/network-request-failed':'Network error. Check connection.'
+  })[code] || 'Login failed: ' + code;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FIRESTORE HELPERS
+   ════════════════════════════════════════════════════════════════ */
+const col     = name => fdb.collection('shops').doc(UID).collection(name);
+const shopRef = ()   => fdb.collection('shops').doc(UID);
+const FV      = ()   => firebase.firestore.FieldValue;
+const TS      = ()   => firebase.firestore.Timestamp.now();
+
+/* ── Account balance — atomic Firestore transaction ── */
+async function adjAcc(mode, amount, dir) {
+  const map = { cash:'cash', online:'online', upi:'upi', bank:'bank', credit:'cash' };
+  const key = map[mode] || 'cash';
+  const ref = shopRef();
+  await fdb.runTransaction(async tx => {
+    const snap = await tx.get(ref);
+    const acc  = snap.exists ? (snap.data().accounts || {}) : {};
+    acc[key]   = (acc[key] || 0) + (dir * amount);
+    tx.set(ref, { accounts: acc }, { merge: true });
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   APP START — attach real-time listeners
+   ════════════════════════════════════════════════════════════════ */
+function startApp() {
+  setDates();
+  setTopDate();
+  loadTheme();
+  renderDash();
+
+  const unsubs = [];
+
+  unsubs.push(col('sales').orderBy('date','desc').onSnapshot(snap => {
+    S.sales = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    renderSales(); renderDash();
+  }, err => console.warn('sales:', err.message)));
+
+  unsubs.push(col('purchases').orderBy('date','desc').onSnapshot(snap => {
+    S.purchases = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    renderPurchases(); renderDash();
+  }, err => console.warn('purchases:', err.message)));
+
+  unsubs.push(col('expenses').orderBy('date','desc').onSnapshot(snap => {
+    S.expenses = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    renderExpenses(); renderExpCat(); renderDash();
+  }, err => console.warn('expenses:', err.message)));
+
+  unsubs.push(col('customers').orderBy('name').onSnapshot(snap => {
+    S.customers = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    renderCustomers(); renderDash(); dlCust(); pendBadge();
+  }, err => console.warn('customers:', err.message)));
+
+  unsubs.push(col('payments').orderBy('date','desc').onSnapshot(snap => {
+    S.payments = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    renderCustomers();
+  }, err => console.warn('payments:', err.message)));
+
+  unsubs.push(col('transfers').orderBy('date','desc').onSnapshot(snap => {
+    S.transfers = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    renderTransfers();
+  }, err => console.warn('transfers:', err.message)));
+
+  unsubs.push(col('products').orderBy('name').onSnapshot(snap => {
+    S.products = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    renderStock(); renderDash(); dlProd();
+  }, err => console.warn('products:', err.message)));
+
+  unsubs.push(shopRef().onSnapshot(snap => {
+    if (snap.exists) {
+      const d = snap.data();
+      S.accounts = d.accounts || { cash:0, online:0, upi:0, bank:0 };
+    }
+    renderAccounts(); renderDash();
+  }, err => console.warn('settings:', err.message)));
+
+  window._unsubAll = unsubs;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SALES
+   ════════════════════════════════════════════════════════════════ */
+async function addSale() {
+  const cn = qs('s-cn').value.trim();
+  const pr = qs('s-pr').value.trim();
+  const qty= parseFloat(qs('s-qty').value) || 1;
+  const amt= parseFloat(qs('s-amt').value);
+  const md = qs('s-mode').value;
+  const dt = qs('s-dt').value;
+  const nt = qs('s-note').value.trim();
+  if (!pr || !amt || !dt) { toast('Fill Product, Amount and Date', 'r'); return; }
+  try {
+    await col('sales').add({ cname:cn||'Walk-in', product:pr, qty, amount:amt, mode:md, date:dt, note:nt, createdAt:TS() });
+    if (md !== 'credit') await adjAcc(md, amt, +1);
+    if (md === 'credit' && cn) {
+      const cu = S.customers.find(c => c.name.toLowerCase() === cn.toLowerCase());
+      if (cu) await col('customers').doc(cu.id).update({ totalCredit:FV().increment(amt), pending:FV().increment(amt), lastDate:dt });
+    }
+    const pd = S.products.find(p => p.name.toLowerCase() === pr.toLowerCase());
+    if (pd) await col('products').doc(pd.id).update({ qty:FV().increment(-qty) });
+    toast(`Sale ₹${amt} added ✓`, 'g');
+    clr(['s-cn','s-pr','s-qty','s-amt','s-note']);
+  } catch(e) { toast('Error: ' + e.message, 'r'); }
+}
+
+function renderSales() {
+  const srch = qs('s-srch')?.value?.toLowerCase() || '';
+  const mf   = qs('s-fmode')?.value || 'all';
+  let list   = S.sales;
+  if (srch) list = list.filter(s => s.product?.toLowerCase().includes(srch) || s.cname?.toLowerCase().includes(srch));
+  if (mf !== 'all') list = list.filter(s => s.mode === mf);
+  const tb = qs('s-tbody');
+  if (!tb) return;
+  tb.innerHTML = list.length ? list.map(s => `
+    <tr>
+      <td>${s.date}</td><td>${s.cname||'Walk-in'}</td><td>${s.product}</td>
+      <td class="mono">${s.qty}</td>
+      <td class="mono fw7 tg1">₹${fmt(s.amount)}</td>
+      <td>${mBadge(s.mode)}</td>
+      <td><span class="ts">${s.note||''}</span></td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-sm btn-gh" onclick='printBill(${JSON.stringify(s).replace(/'/g,"&#39;")})'>🖨️</button>
+        <button class="btn btn-sm btn-dn" onclick="delItem('sales','${s.id}','${s.mode}',${s.amount},'${s.cname||''}')">✕</button>
+      </td>
+    </tr>`).join('') : `<tr><td colspan="8" class="te">No sales yet</td></tr>`;
+}
+
+async function delItem(type, id, mode, amount, extra) {
+  if (!confirm('Delete this record?')) return;
+  await col(type).doc(id).delete();
+  if (type === 'sales' && mode !== 'credit') await adjAcc(mode, amount, -1);
+  if (type === 'sales' && mode === 'credit' && extra) {
+    const cu = S.customers.find(c => c.name === extra);
+    if (cu) await col('customers').doc(cu.id).update({ pending:FV().increment(-amount), totalCredit:FV().increment(-amount) });
+  }
+  if (type === 'purchases' && mode !== 'credit') await adjAcc(mode, amount, +1);
+  if (type === 'expenses') await adjAcc(mode, amount, +1);
+  toast('Deleted', 'a');
+}
+
+function expSalesCSV() {
+  csvDL([['Date','Customer','Product','Qty','Amount','Mode','Note'],
+    ...S.sales.map(s=>[s.date,s.cname,s.product,s.qty,s.amount,s.mode,s.note])
+  ], 'Sales');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PURCHASES
+   ════════════════════════════════════════════════════════════════ */
+async function addPurchase() {
+  const sup= qs('p-sup').value.trim();
+  const pr = qs('p-pr').value.trim();
+  const qty= parseFloat(qs('p-qty').value)||0;
+  const amt= parseFloat(qs('p-amt').value);
+  const md = qs('p-mode').value;
+  const dt = qs('p-dt').value;
+  const nt = qs('p-note').value.trim();
+  if (!pr || !amt || !dt) { toast('Fill Product, Amount and Date', 'r'); return; }
+  try {
+    await col('purchases').add({ supplier:sup||'Unknown', product:pr, qty, amount:amt, mode:md, date:dt, note:nt, createdAt:TS() });
+    if (md !== 'credit') await adjAcc(md, amt, -1);
+    const pd = S.products.find(p => p.name.toLowerCase() === pr.toLowerCase());
+    if (pd) await col('products').doc(pd.id).update({ qty:FV().increment(qty) });
+    toast(`Purchase ₹${amt} added ✓`, 'g');
+    clr(['p-sup','p-pr','p-qty','p-amt','p-note']);
+  } catch(e) { toast('Error: ' + e.message, 'r'); }
+}
+
+function renderPurchases() {
+  const tb = qs('p-tbody');
+  if (!tb) return;
+  tb.innerHTML = S.purchases.length ? S.purchases.map(p => `
+    <tr>
+      <td>${p.date}</td><td>${p.supplier}</td><td>${p.product}</td>
+      <td class="mono">${p.qty}</td>
+      <td class="mono fw7 tr1">₹${fmt(p.amount)}</td>
+      <td>${mBadge(p.mode)}</td><td><span class="ts">${p.note||''}</span></td>
+      <td><button class="btn btn-sm btn-dn" onclick="delItem('purchases','${p.id}','${p.mode}',${p.amount},'')">✕</button></td>
+    </tr>`).join('') : `<tr><td colspan="8" class="te">No purchases yet</td></tr>`;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   EXPENSES
+   ════════════════════════════════════════════════════════════════ */
+async function addExpense() {
+  const nm = qs('e-nm').value.trim();
+  const ct = qs('e-cat').value;
+  const amt= parseFloat(qs('e-amt').value);
+  const md = qs('e-mode').value;
+  const dt = qs('e-dt').value;
+  if (!nm || !amt || !dt) { toast('Fill Name, Amount and Date', 'r'); return; }
+  try {
+    await col('expenses').add({ name:nm, cat:ct, amount:amt, mode:md, date:dt, createdAt:TS() });
+    await adjAcc(md, amt, -1);
+    toast(`Expense ₹${amt} added ✓`, 'g');
+    clr(['e-nm','e-amt']);
+  } catch(e) { toast('Error: ' + e.message, 'r'); }
+}
+
+function renderExpenses() {
+  const tb = qs('e-tbody');
+  if (!tb) return;
+  tb.innerHTML = S.expenses.length ? S.expenses.slice(0,60).map(e => `
+    <tr>
+      <td>${e.date}</td><td>${e.name}</td>
+      <td><span class="badge ba">${e.cat}</span></td>
+      <td>${mBadge(e.mode)}</td>
+      <td class="mono fw7 ta1">₹${fmt(e.amount)}</td>
+      <td><button class="btn btn-sm btn-dn" onclick="delItem('expenses','${e.id}','${e.mode}',${e.amount},'')">✕</button></td>
+    </tr>`).join('') : `<tr><td colspan="6" class="te">No expenses yet</td></tr>`;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CUSTOMERS
+   ════════════════════════════════════════════════════════════════ */
+async function addCustomer() {
+  const nm = qs('c-nm').value.trim();
+  const ph = qs('c-ph').value.trim();
+  const ad = qs('c-addr').value.trim();
+  const lm = parseFloat(qs('c-lim').value)||0;
+  if (!nm) { toast('Customer name required', 'r'); return; }
+  if (S.customers.find(c => c.name.toLowerCase() === nm.toLowerCase())) { toast('Customer already exists', 'a'); return; }
+  try {
+    await col('customers').add({ name:nm, phone:ph, addr:ad, limit:lm, totalCredit:0, totalPaid:0, pending:0, lastDate:'', createdAt:TS() });
+    closeMo('mo-addcust');
+    toast(`${nm} added ✓`, 'g');
+    clr(['c-nm','c-ph','c-addr','c-lim']);
+  } catch(e) { toast('Error: ' + e.message, 'r'); }
+}
+
+function renderCustomers() {
+  const srch = qs('c-srch')?.value?.toLowerCase() || '';
+  let list = [...S.customers];
+  if (srch) list = list.filter(c => c.name?.toLowerCase().includes(srch) || c.phone?.includes(srch));
+  list.sort((a,b) => (b.pending||0) - (a.pending||0));
+  const wrap = qs('c-list');
+  if (!wrap) return;
+  wrap.innerHTML = list.length ? list.map(c => `
+    <div class="cc" onclick="showCustDet('${c.id}')">
+      <div class="cav">${c.name?.charAt(0)?.toUpperCase()||'?'}</div>
+      <div class="ci">
+        <div class="cn">${c.name}</div>
+        <div class="cm">${c.phone||'No phone'} · Credit: ₹${fmt(c.totalCredit||0)} · Paid: ₹${fmt(c.totalPaid||0)}</div>
+      </div>
+      <div class="cb-r">₹${fmt(c.pending||0)}</div>
+    </div>`).join('') : `<div class="te">No customers found</div>`;
+  const tp = S.customers.reduce((s,c)=>s+(c.pending||0),0);
+  setEl('tot-pend', `₹${fmt(tp)} pending`);
+}
+
+function showCustDet(cid) {
+  const c = S.customers.find(x=>x.id===cid); if(!c) return;
+  qs('c-detail').style.display = 'block';
+  setEl('c-det-name', `👤 ${c.name}`);
+  const cpays  = S.payments.filter(p=>p.custId===cid);
+  const csales = S.sales.filter(s=>s.mode==='credit'&&s.cname?.toLowerCase()===c.name?.toLowerCase());
+  const pct    = c.limit ? Math.min(100,Math.round(((c.pending||0)/c.limit)*100)) : 0;
+  qs('c-det-body').innerHTML = `
+    <div class="sg" style="grid-template-columns:1fr 1fr;margin-bottom:12px">
+      <div class="sc"><div class="sc-lbl">Total Credit</div><div class="sc-val mono tr1">₹${fmt(c.totalCredit||0)}</div></div>
+      <div class="sc"><div class="sc-lbl">Total Paid</div><div class="sc-val mono tg1">₹${fmt(c.totalPaid||0)}</div></div>
+      <div class="sc red"><div class="sc-lbl">Pending</div><div class="sc-val mono tr1">₹${fmt(c.pending||0)}</div></div>
+      <div class="sc"><div class="sc-lbl">Limit</div><div class="sc-val mono">₹${fmt(c.limit||0)}</div></div>
+    </div>
+    <div class="ts" style="margin-bottom:6px">📱 ${c.phone||'N/A'} &nbsp;|&nbsp; 📍 ${c.addr||'N/A'} &nbsp;|&nbsp; 📅 ${c.lastDate||'Never'}</div>
+    ${c.limit?`<div class="pt" style="margin-bottom:10px"><div class="pf${pct>80?' red':''}" style="width:${pct}%"></div></div>`:''}
+    <div class="fg-r" style="margin-bottom:12px">
+      <button class="btn btn-g btn-sm" onclick="openPayMo('${c.id}','${c.name}')">💰 Add Payment</button>
+      <button class="btn btn-sm btn-ol" onclick="custPDF('${c.id}')">⬇ Statement PDF</button>
+      <button class="btn btn-sm btn-dn" onclick="delCust('${c.id}')">🗑️ Delete</button>
+    </div>
+    <div class="sl">Credit Sales</div>
+    <div style="max-height:140px;overflow-y:auto;font-size:12px">
+      ${csales.length ? csales.map(s=>`<div class="fb" style="padding:5px 0;border-bottom:1px solid var(--card-b)"><span>${s.date} — ${s.product}</span><span class="tr1 fw7">−₹${fmt(s.amount)}</span></div>`).join('') : '<div class="te" style="padding:12px">No credit sales</div>'}
+    </div>
+    <div class="sl" style="margin-top:10px">Payments Received</div>
+    <div style="max-height:100px;overflow-y:auto;font-size:12px">
+      ${cpays.length ? cpays.map(p=>`<div class="fb" style="padding:5px 0;border-bottom:1px solid var(--card-b)"><span>${p.date} — ${p.note||'Payment'}</span><span class="tg1 fw7">+₹${fmt(p.amount)}</span></div>`).join('') : '<div class="te" style="padding:12px">No payments yet</div>'}
+    </div>`;
+}
+
+function closeCustDet() { qs('c-detail').style.display='none'; }
+
+function openPayMo(cid, cname) {
+  qs('pay-cid').value  = cid;
+  setEl('pay-ms', `Receiving payment from: ${cname}`);
+  qs('pay-dt').value   = today();
+  openMo('mo-pay');
+}
+
+async function addPayment() {
+  const cid = qs('pay-cid').value;
+  const amt = parseFloat(qs('pay-amt').value);
+  const md  = qs('pay-mode').value;
+  const dt  = qs('pay-dt').value;
+  const nt  = qs('pay-note').value.trim();
+  if (!amt||!dt) { toast('Enter amount and date','r'); return; }
+  const cu = S.customers.find(c=>c.id===cid); if(!cu) return;
+  try {
+    await col('payments').add({ custId:cid, custName:cu.name, amount:amt, mode:md, date:dt, note:nt, createdAt:TS() });
+    await col('customers').doc(cid).update({ totalPaid:FV().increment(amt), pending:FV().increment(-amt), lastDate:dt });
+    await adjAcc(md, amt, +1);
+    closeMo('mo-pay');
+    toast(`Payment ₹${amt} recorded ✓`,'g');
+    clr(['pay-amt','pay-note']);
+    showCustDet(cid);
+  } catch(e) { toast('Error: '+e.message,'r'); }
+}
+
+async function delCust(cid) {
+  if(!confirm('Delete this customer?')) return;
+  await col('customers').doc(cid).delete();
+  closeCustDet();
+  toast('Customer deleted','a');
+}
+
+function dlCust() {
+  const dl = qs('dl-cust');
+  if (dl) dl.innerHTML = S.customers.map(c=>`<option value="${c.name}">`).join('');
+}
+function dlProd() {
+  const dl = qs('dl-prod');
+  if (dl) dl.innerHTML = S.products.map(p=>`<option value="${p.name}">`).join('');
+}
+function pendBadge() {
+  const n = S.customers.filter(c=>(c.pending||0)>0).length;
+  setEl('pend-badge', n);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ACCOUNTS
+   ════════════════════════════════════════════════════════════════ */
+function renderAccounts() {
+  const ac  = S.accounts;
+  const tot = (ac.cash||0)+(ac.online||0)+(ac.upi||0)+(ac.bank||0);
+  const el  = qs('acc-cards');
+  if (!el) return;
+  el.innerHTML = [
+    {k:'cash',  n:'Cash in Hand', ic:'💵', cl:'cash'},
+    {k:'online',n:'Online',       ic:'📱', cl:'online'},
+    {k:'upi',   n:'UPI',          ic:'🔵', cl:'upi'},
+    {k:'bank',  n:'Bank Account', ic:'🏦', cl:'bank'},
+  ].map(a=>`
+    <div class="ac ${a.cl}">
+      <div class="ac-ico">${a.ic}</div>
+      <div class="ac-nm">${a.n}</div>
+      <div class="ac-bal">₹${fmt(ac[a.k]||0)}</div>
+      <div class="ac-sub">Available</div>
+    </div>`).join('') +
+    `<div class="ac" style="background:linear-gradient(135deg,var(--g1),var(--g3))">
+      <div class="ac-ico">🏪</div>
+      <div class="ac-nm" style="color:rgba(255,255,255,.8)">NET TOTAL</div>
+      <div class="ac-bal" style="color:#fff">₹${fmt(tot)}</div>
+      <div class="ac-sub" style="color:rgba(255,255,255,.7)">All accounts</div>
+    </div>`;
+  renderAccTxns();
+}
+
+function renderAccTxns() {
+  const filt = qs('acc-filt')?.value||'all';
+  const txns = [
+    ...S.sales.map(s=>({date:s.date,type:'Sale',desc:s.product+(s.cname?` (${s.cname})`:''),acc:s.mode,cr:s.mode!=='credit'?s.amount:0,db:0})),
+    ...S.purchases.map(p=>({date:p.date,type:'Purchase',desc:p.product,acc:p.mode,cr:0,db:p.mode!=='credit'?p.amount:0})),
+    ...S.expenses.map(e=>({date:e.date,type:'Expense',desc:e.name,acc:e.mode,cr:0,db:e.amount})),
+    ...S.payments.map(p=>({date:p.date,type:'Payment',desc:`From ${p.custName}`,acc:p.mode,cr:p.amount,db:0})),
+  ].filter(t=>filt==='all'||t.acc===filt).sort((a,b)=>b.date.localeCompare(a.date));
+  const tb = qs('acc-tbody');
+  if (!tb) return;
+  tb.innerHTML = txns.slice(0,100).length ? txns.slice(0,100).map(t=>`
+    <tr>
+      <td>${t.date}</td>
+      <td><span class="badge ${t.type==='Sale'?'bg':t.type==='Payment'?'bb':'br'}">${t.type}</span></td>
+      <td>${t.desc}</td>
+      <td>${mBadge(t.acc)}</td>
+      <td class="mono tg1">${t.cr?'₹'+fmt(t.cr):''}</td>
+      <td class="mono tr1">${t.db?'₹'+fmt(t.db):''}</td>
+    </tr>`).join('') : `<tr><td colspan="6" class="te">No transactions</td></tr>`;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   TRANSFERS
+   ════════════════════════════════════════════════════════════════ */
+async function doTransfer() {
+  const fr = qs('tr-from').value;
+  const to = qs('tr-to').value;
+  const amt= parseFloat(qs('tr-amt').value);
+  const dt = qs('tr-dt').value;
+  const nt = qs('tr-note').value.trim();
+  if (fr===to) { toast('Cannot transfer to same account','r'); return; }
+  if (!amt||!dt) { toast('Enter amount and date','r'); return; }
+  const bal = S.accounts[fr]||0;
+  if (bal<amt) { toast(`Insufficient balance in ${fr} (₹${fmt(bal)})`,'r'); return; }
+  try {
+    await col('transfers').add({ from:fr, to, amount:amt, date:dt, note:nt, createdAt:TS() });
+    await adjAcc(fr, amt, -1);
+    await adjAcc(to, amt, +1);
+    toast(`₹${amt} transferred: ${fr} → ${to} ✓`,'g');
+    clr(['tr-amt','tr-note']);
+  } catch(e) { toast('Error: '+e.message,'r'); }
+}
+
+function renderTransfers() {
+  const tb = qs('tr-tbody');
+  if (!tb) return;
+  tb.innerHTML = S.transfers.length ? S.transfers.map(t=>`
+    <tr>
+      <td>${t.date}</td><td>${mBadge(t.from)}</td><td>${mBadge(t.to)}</td>
+      <td class="mono fw7">₹${fmt(t.amount)}</td><td>${t.note||''}</td>
+      <td><button class="btn btn-sm btn-dn" onclick="delTransfer('${t.id}',${t.amount},'${t.from}','${t.to}')">✕</button></td>
+    </tr>`).join('') : `<tr><td colspan="6" class="te">No transfers yet</td></tr>`;
+}
+
+async function delTransfer(id, amt, fr, to) {
+  if(!confirm('Delete transfer?')) return;
+  await col('transfers').doc(id).delete();
+  await adjAcc(fr, amt, +1);
+  await adjAcc(to, amt, -1);
+  toast('Transfer deleted','a');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   STOCK
+   ════════════════════════════════════════════════════════════════ */
+async function addProduct() {
+  const nm = qs('st-nm').value.trim();
+  const ct = qs('st-cat').value.trim();
+  const qty= parseFloat(qs('st-qty').value)||0;
+  const un = qs('st-unit').value;
+  const by = parseFloat(qs('st-buy').value)||0;
+  const sl = parseFloat(qs('st-sell').value)||0;
+  const lw = parseFloat(qs('st-low').value)||5;
+  if (!nm) { toast('Product name required','r'); return; }
+  const ex = S.products.find(p=>p.name.toLowerCase()===nm.toLowerCase());
+  try {
+    if (ex) { await col('products').doc(ex.id).update({ cat:ct, qty, unit:un, buy:by, sell:sl, low:lw }); toast(`${nm} updated ✓`,'g'); }
+    else    { await col('products').add({ name:nm, cat:ct, qty, unit:un, buy:by, sell:sl, low:lw, createdAt:TS() }); toast(`${nm} added ✓`,'g'); }
+    clr(['st-nm','st-cat','st-qty','st-buy','st-sell','st-low']);
+  } catch(e) { toast('Error: '+e.message,'r'); }
+}
+
+function renderStock() {
+  const srch = qs('st-srch')?.value?.toLowerCase()||'';
+  let list = S.products;
+  if (srch) list = list.filter(p=>p.name?.toLowerCase().includes(srch)||p.cat?.toLowerCase().includes(srch));
+  const tb = qs('st-tbody');
+  if (!tb) return;
+  tb.innerHTML = list.length ? list.map(p=>{
+    const mg  = p.sell&&p.buy ? Math.round(((p.sell-p.buy)/p.buy)*100) : 0;
+    const low = p.qty<=(p.low||5);
+    return `<tr style="${low?'background:var(--red-l)':''}">
+      <td class="fw7">${p.name}</td><td>${p.cat||'—'}</td>
+      <td class="mono fw7 ${low?'tr1':''}">${p.qty}</td>
+      <td>${p.unit}</td>
+      <td class="mono">₹${fmt(p.buy||0)}</td><td class="mono">₹${fmt(p.sell||0)}</td>
+      <td class="mono tg1">${mg}%</td>
+      <td>${low?`<span class="pt-g">⚠️ LOW</span>`:`<span class="pr-g">OK</span>`}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-sm btn-ol" onclick="loadProd('${p.id}')">Edit</button>
+        <button class="btn btn-sm btn-dn" onclick="delProd('${p.id}')">✕</button>
+      </td>
+    </tr>`;}).join('') : `<tr><td colspan="9" class="te">No products yet</td></tr>`;
+}
+
+function loadProd(id) {
+  const p = S.products.find(x=>x.id===id); if(!p) return;
+  qs('st-nm').value  = p.name; qs('st-cat').value = p.cat||'';
+  qs('st-qty').value = p.qty||0; qs('st-unit').value= p.unit||'Pcs';
+  qs('st-buy').value = p.buy||0; qs('st-sell').value= p.sell||0;
+  qs('st-low').value = p.low||5;
+  go('stock'); window.scrollTo(0,0);
+}
+
+async function delProd(id) {
+  if(!confirm('Delete product?')) return;
+  await col('products').doc(id).delete();
+  toast('Product deleted','a');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   DASHBOARD
+   ════════════════════════════════════════════════════════════════ */
+function renderDash() {
+  const ac  = S.accounts;
+  const cash= ac.cash||0;
+  const onl = (ac.online||0)+(ac.upi||0)+(ac.bank||0);
+  const net = cash+onl;
+  const tSa = S.sales.reduce((s,x)=>s+x.amount,0);
+  const tPu = S.purchases.reduce((s,x)=>s+x.amount,0);
+  const tEx = S.expenses.reduce((s,x)=>s+x.amount,0);
+  const prof= tSa-tPu-tEx;
+  const tCr = S.customers.reduce((s,c)=>s+(c.pending||0),0);
+  const tdSa= S.sales.filter(s=>s.date===today()).reduce((s,x)=>s+x.amount,0);
+  const tdCt= S.sales.filter(s=>s.date===today()).length;
+
+  setEl('d-cash',    `₹${fmt(cash)}`);
+  setEl('d-online',  `₹${fmt(onl)}`);
+  setEl('d-sales',   `₹${fmt(tSa)}`);
+  setEl('d-purch',   `₹${fmt(tPu)}`);
+  setEl('d-profit',  `₹${fmt(prof)}`);
+  setEl('d-credit',  `₹${fmt(tCr)}`);
+  setEl('d-today',   `₹${fmt(tdSa)}`);
+  setEl('d-net',     `₹${fmt(net)}`);
+  setEl('d-sales-c', `${S.sales.length} entries`);
+  setEl('d-purch-c', `${S.purchases.length} entries`);
+  setEl('d-today-c', `${tdCt} entries today`);
+
+  // Alerts
+  const alts = [];
+  const lows = S.products.filter(p=>p.qty<=(p.low||5));
+  if (lows.length) alts.push(`<div class="al al-r">⚠️ ${lows.length} product(s) low on stock: ${lows.map(p=>p.name).join(', ')}</div>`);
+  if (tCr>0) alts.push(`<div class="al al-a">💳 Total pending credit: ₹${fmt(tCr)} from ${S.customers.filter(c=>(c.pending||0)>0).length} customers</div>`);
+  if (prof<0) alts.push(`<div class="al al-r">📉 Business is in loss: ₹${fmt(Math.abs(prof))}</div>`);
+  qs('dash-alerts').innerHTML = alts.join('');
+
+  // Top pending
+  const tp = [...S.customers].filter(c=>(c.pending||0)>0).sort((a,b)=>b.pending-a.pending).slice(0,5);
+  qs('d-pend').innerHTML = tp.length ? tp.map(c=>`
+    <div class="fb" style="padding:10px 14px;border-bottom:1px solid var(--card-b)">
+      <div><div class="fw7">${c.name}</div><div class="ts">${c.phone||'No phone'}</div></div>
+      <span class="pt-g">₹${fmt(c.pending)}</span>
+    </div>`).join('') : `<div class="te">No pending credits 🎉</div>`;
+
+  // Recent
+  const rec = [
+    ...S.sales.slice(0,4).map(s=>({date:s.date,desc:`Sale: ${s.product}`,amt:s.amount,t:'s'})),
+    ...S.purchases.slice(0,2).map(p=>({date:p.date,desc:`Purchase: ${p.product}`,amt:p.amount,t:'p'})),
+    ...S.expenses.slice(0,2).map(e=>({date:e.date,desc:`Expense: ${e.name}`,amt:e.amount,t:'e'})),
+  ].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+  qs('d-recent').innerHTML = rec.length ? rec.map(r=>`
+    <div class="fb" style="padding:10px 14px;border-bottom:1px solid var(--card-b)">
+      <div><div style="font-size:13px;font-weight:500">${r.desc}</div><div class="ts">${r.date}</div></div>
+      <span class="mono fw7 ${r.t==='s'?'tg1':'tr1'}">₹${fmt(r.amt)}</span>
+    </div>`).join('') : `<div class="te">No transactions yet</div>`;
+
+  // Low stock
+  qs('d-lowstock').innerHTML = lows.length
+    ? `<div style="padding:10px 14px;display:flex;flex-wrap:wrap;gap:7px">${lows.map(p=>`<span class="pt-g">⚠️ ${p.name} (${p.qty} ${p.unit})</span>`).join('')}</div>`
+    : `<div class="te" style="padding:14px">All stock levels OK ✓</div>`;
+
+  renderDashChart();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CHARTS
+   ════════════════════════════════════════════════════════════════ */
+function dCh(k) { if(CHS[k]){CHS[k].destroy();delete CHS[k];} }
+const isDk  = ()=> document.documentElement.getAttribute('data-theme')==='dark';
+const gridC = ()=> isDk()?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.05)';
+const tickC = ()=> isDk()?'#90C8A8':'#4A6E5E';
+
+function chOpts(extra={}) {
+  return { responsive:true, maintainAspectRatio:false, animation:{duration:600},
+    plugins:{legend:{labels:{font:{size:11,family:'Poppins'},color:tickC(),padding:12}}},
+    scales:{
+      x:{ticks:{font:{size:10,family:'Poppins'},color:tickC()},grid:{display:false}},
+      y:{ticks:{font:{size:10,family:'Poppins'},color:tickC(),callback:v=>'₹'+Math.round(v).toLocaleString('en-IN')},grid:{color:gridC()}}
+    }, ...extra };
+}
+
+function renderDashChart() {
+  const days = [...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-i);return d.toISOString().split('T')[0];}).reverse();
+  const labels = days.map(d=>{const x=new Date(d);return x.toLocaleDateString('en-IN',{day:'numeric',month:'short'});});
+  dCh('dash');
+  const el = qs('ch-dash'); if (!el) return;
+  CHS['dash'] = new Chart(el, {
+    type:'bar', data:{labels, datasets:[
+      {label:'Sales',   data:days.map(d=>S.sales.filter(s=>s.date===d).reduce((a,s)=>a+s.amount,0)), backgroundColor:'rgba(0,135,90,.82)',borderRadius:4},
+      {label:'Expenses',data:days.map(d=>S.expenses.filter(e=>e.date===d).reduce((a,e)=>a+e.amount,0)), backgroundColor:'rgba(229,62,62,.72)',borderRadius:4},
+    ]}, options:chOpts()
+  });
+}
+
+function renderExpCat() {
+  const cats={};
+  S.expenses.forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.amount;});
+  const lbs=Object.keys(cats), vals=Object.values(cats);
+  const cols=['#00875A','#D97706','#2B6CB0','#6B46C1','#E53E3E','#0694A2','#DD6B20','#805AD5'];
+  const donutOpts = {responsive:true,maintainAspectRatio:false,cutout:'60%',animation:{duration:700},
+    plugins:{legend:{position:'right',labels:{font:{size:11,family:'Poppins'},color:tickC(),padding:10}}}};
+  ['ch-exp-pie','ch-ecat'].forEach(id=>{
+    dCh(id); const el=qs(id); if(!el) return;
+    CHS[id]=new Chart(el,{type:'doughnut',data:{labels:lbs,datasets:[{data:vals,backgroundColor:cols,borderWidth:0}]},options:donutOpts});
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   REPORTS
+   ════════════════════════════════════════════════════════════════ */
+function genReport() {
+  const fr = qs('r-from').value;
+  const to = qs('r-to').value;
+  if (!fr||!to) { toast('Select date range','r'); return; }
+  const inR = d => d>=fr && d<=to;
+  const sal = S.sales.filter(s=>inR(s.date));
+  const pur = S.purchases.filter(p=>inR(p.date));
+  const exp = S.expenses.filter(e=>inR(e.date));
+  const pay = S.payments.filter(p=>inR(p.date));
+  const tS=sal.reduce((s,x)=>s+x.amount,0);
+  const tP=pur.reduce((s,x)=>s+x.amount,0);
+  const tE=exp.reduce((s,x)=>s+x.amount,0);
+  const tPy=pay.reduce((s,x)=>s+x.amount,0);
+  const prf=tS-tP-tE;
+  const statsEl = qs('r-stats');
+  if (statsEl) statsEl.innerHTML = `
+    <div class="sc"><div class="sc-ico">📈</div><div class="sc-lbl">Sales</div><div class="sc-val mono tg1">₹${fmt(tS)}</div><div class="sc-sub">${sal.length} entries</div></div>
+    <div class="sc red"><div class="sc-ico">🛒</div><div class="sc-lbl">Purchase</div><div class="sc-val mono tr1">₹${fmt(tP)}</div></div>
+    <div class="sc amb"><div class="sc-ico">💳</div><div class="sc-lbl">Expenses</div><div class="sc-val mono ta1">₹${fmt(tE)}</div></div>
+    <div class="sc ${prf>=0?'':'red'}"><div class="sc-ico">${prf>=0?'✨':'📉'}</div><div class="sc-lbl">Net Profit/Loss</div><div class="sc-val mono ${prf>=0?'tg1':'tr1'}">₹${fmt(prf)}</div></div>
+    <div class="sc blu"><div class="sc-ico">💰</div><div class="sc-lbl">Payment Received</div><div class="sc-val mono">₹${fmt(tPy)}</div></div>`;
+
+  const all = [
+    ...sal.map(s=>({date:s.date,type:'Sale',desc:`${s.product} (${s.cname})`,amount:s.amount,mode:s.mode})),
+    ...pur.map(p=>({date:p.date,type:'Purchase',desc:p.product,amount:p.amount,mode:p.mode})),
+    ...exp.map(e=>({date:e.date,type:'Expense',desc:e.name,amount:e.amount,mode:e.mode})),
+  ].sort((a,b)=>b.date.localeCompare(a.date));
+
+  const tb = qs('r-tbody');
+  if (tb) tb.innerHTML = all.length ? all.map(t=>`
+    <tr>
+      <td>${t.date}</td>
+      <td><span class="badge ${t.type==='Sale'?'bg':t.type==='Purchase'?'br':'ba'}">${t.type}</span></td>
+      <td>${t.desc}</td>
+      <td class="mono fw7 ${t.type==='Sale'?'tg1':'tr1'}">₹${fmt(t.amount)}</td>
+      <td>${mBadge(t.mode)}</td>
+    </tr>`).join('') : `<tr><td colspan="5" class="te">No data</td></tr>`;
+
+  const ctb = qs('r-cred-tbody');
+  if (ctb) ctb.innerHTML = S.customers.map(c=>`
+    <tr>
+      <td class="fw7">${c.name}</td><td>${c.phone||'—'}</td>
+      <td class="mono tr1">₹${fmt(c.totalCredit||0)}</td>
+      <td class="mono tg1">₹${fmt(c.totalPaid||0)}</td>
+      <td class="mono fw7 ${(c.pending||0)>0?'tr1':'tg1'}">₹${fmt(c.pending||0)}</td>
+      <td>${c.lastDate||'—'}</td>
+    </tr>`).join('') || `<tr><td colspan="6" class="te">No customers</td></tr>`;
+
+  // Sales chart
+  const dg={};
+  sal.forEach(s=>{dg[s.date]=(dg[s.date]||0)+s.amount;});
+  const cls=Object.keys(dg).sort();
+  dCh('rs'); const rse=qs('ch-rsales');
+  if (rse) CHS['rs']=new Chart(rse,{type:'bar',data:{labels:cls,datasets:[{label:'Sales',data:cls.map(d=>dg[d]),backgroundColor:'rgba(0,135,90,.8)',borderRadius:4}]},options:chOpts()});
+
+  // Profit line
+  const pg={};
+  [...sal,...pur,...exp].forEach(t=>{if(!pg[t.date])pg[t.date]={s:0,c:0};if(sal.includes(t))pg[t.date].s+=t.amount;else pg[t.date].c+=t.amount;});
+  const pls=Object.keys(pg).sort();
+  dCh('rp'); const rpe=qs('ch-rprofit');
+  if (rpe) CHS['rp']=new Chart(rpe,{type:'line',data:{labels:pls,datasets:[{label:'Profit/Loss',data:pls.map(d=>pg[d].s-pg[d].c),borderColor:'#00875A',backgroundColor:'rgba(0,135,90,.1)',fill:true,tension:.35,pointRadius:4}]},options:chOpts()});
+
+  toast('Report generated ✓','g');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PDF EXPORT
+   ════════════════════════════════════════════════════════════════ */
+function expRepPDF() {
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const fr=qs('r-from').value, to=qs('r-to').value;
+  if(!fr||!to){toast('Generate report first','r');return;}
+  const inR=d=>d>=fr&&d<=to;
+  const sal=S.sales.filter(s=>inR(s.date)), pur=S.purchases.filter(p=>inR(p.date)), exp=S.expenses.filter(e=>inR(e.date));
+  const tS=sal.reduce((s,x)=>s+x.amount,0),tP=pur.reduce((s,x)=>s+x.amount,0),tE=exp.reduce((s,x)=>s+x.amount,0);
+  const prf=tS-tP-tE;
+  let y=20;const W=210,M=15;
+  doc.setFillColor(0,135,90);doc.rect(0,0,W,40,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(18);doc.setFont('helvetica','bold');
+  doc.text('Bahuchar Pan Shop Manager',M,16);
+  doc.setFontSize(10);doc.setFont('helvetica','normal');
+  doc.text(`Report: ${fr} to ${to}`,M,24);
+  doc.text(`Generated: ${new Date().toLocaleDateString('en-IN')}`,M,31);
+  y=52;
+  doc.setFillColor(240,250,245);doc.roundedRect(M,y,W-2*M,28,3,3,'F');
+  doc.setTextColor(0,80,50);doc.setFontSize(9);doc.setFont('helvetica','bold');
+  [{l:'Total Sales',v:`₹${fmt(tS)}`},{l:'Total Purchase',v:`₹${fmt(tP)}`},{l:'Total Expenses',v:`₹${fmt(tE)}`},{l:'Net Profit/Loss',v:`₹${fmt(prf)}`}].forEach((s,i)=>{
+    const x=M+5+(i%2)*90, ry=y+8+Math.floor(i/2)*12;
+    doc.setTextColor(80,120,100);doc.text(s.l,x,ry);
+    doc.setTextColor(prf>=0?0:200,prf>=0?120:50,prf>=0?70:50);doc.text(s.v,x,ry+7);
+  });
+  y+=38;
+  const tblSec=(title,rows,cols,cw)=>{
+    if(y>250){doc.addPage();y=15;}
+    doc.setFontSize(11);doc.setTextColor(0,90,60);doc.setFont('helvetica','bold');
+    doc.text(title,M,y);y+=7;
+    if(!rows.length){doc.setFontSize(9);doc.setTextColor(140,140,140);doc.setFont('helvetica','normal');doc.text('No records',M,y);y+=8;return;}
+    doc.setFillColor(0,135,90);doc.rect(M,y-4,W-2*M,7,'F');
+    doc.setFontSize(8);doc.setTextColor(255,255,255);
+    let cx=M+2;cols.forEach((c,i)=>{doc.text(c,cx,y);cx+=cw[i];});
+    y+=8;
+    rows.forEach((r,ri)=>{
+      if(y>272){doc.addPage();y=15;}
+      if(ri%2===0){doc.setFillColor(245,252,248);doc.rect(M,y-4,W-2*M,7,'F');}
+      doc.setFontSize(8);doc.setTextColor(20,40,30);doc.setFont('helvetica','normal');
+      let cx2=M+2;r.forEach((c,i)=>{doc.text(String(c).slice(0,Math.floor(cw[i]/2.5)),cx2,y);cx2+=cw[i];});
+      y+=7;
+    });
+    y+=6;
+  };
+  tblSec('Sales',sal.map(s=>[s.date,s.cname,s.product,`₹${fmt(s.amount)}`,s.mode]),['Date','Customer','Product','Amount','Mode'],[28,36,38,24,18]);
+  tblSec('Purchases',pur.map(p=>[p.date,p.supplier,p.product,`₹${fmt(p.amount)}`,p.mode]),['Date','Supplier','Product','Amount','Mode'],[28,36,38,24,18]);
+  tblSec('Expenses',exp.map(e=>[e.date,e.name,e.cat,`₹${fmt(e.amount)}`,e.mode]),['Date','Name','Category','Amount','Mode'],[28,40,36,24,18]);
+  tblSec('Customer Credit',S.customers.map(c=>[c.name,c.phone||'—',`₹${fmt(c.totalCredit||0)}`,`₹${fmt(c.totalPaid||0)}`,`₹${fmt(c.pending||0)}`]),['Customer','Phone','Credit','Paid','Pending'],[40,30,35,35,30]);
+  const pgs=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pgs;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(150,150,150);doc.text(`Bahuchar Pan Shop Manager | Page ${i} of ${pgs}`,M,287);}
+  doc.save(`BahucharReport_${fr}_${to}.pdf`);
+  toast('PDF exported ✓','g');
+}
+
+function expRepCSV() {
+  const fr=qs('r-from').value,to=qs('r-to').value;
+  if(!fr||!to){toast('Generate report first','r');return;}
+  const inR=d=>d>=fr&&d<=to;
+  csvDL([
+    ['Type','Date','Description','Amount','Mode'],
+    ...S.sales.filter(s=>inR(s.date)).map(s=>['Sale',s.date,`${s.product} - ${s.cname}`,s.amount,s.mode]),
+    ...S.purchases.filter(p=>inR(p.date)).map(p=>['Purchase',p.date,p.product,p.amount,p.mode]),
+    ...S.expenses.filter(e=>inR(e.date)).map(e=>['Expense',e.date,e.name,e.amount,e.mode]),
+  ], `BahucharReport_${fr}_${to}`);
+}
+
+/* Customer PDF Statement */
+function custPDF(cid) {
+  const c=S.customers.find(x=>x.id===cid);if(!c)return;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  let y=20;
+  doc.setFillColor(0,135,90);doc.rect(0,0,210,36,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(14);doc.setFont('helvetica','bold');
+  doc.text('Bahuchar Pan Shop — Customer Statement',15,14);
+  doc.setFontSize(10);doc.setFont('helvetica','normal');
+  doc.text(`Customer: ${c.name} | Phone: ${c.phone||'N/A'}`,15,23);
+  doc.text(`Generated: ${new Date().toLocaleDateString('en-IN')}`,15,30);
+  y=48;
+  doc.setFillColor(240,250,245);doc.roundedRect(15,y,180,20,3,3,'F');
+  doc.setTextColor(0,80,50);doc.setFontSize(10);doc.setFont('helvetica','bold');
+  doc.text(`Credit: ₹${fmt(c.totalCredit||0)}`,20,y+8);
+  doc.text(`Paid: ₹${fmt(c.totalPaid||0)}`,90,y+8);
+  doc.text(`Pending: ₹${fmt(c.pending||0)}`,155,y+8);
+  y+=30;
+  const cs=S.sales.filter(s=>s.mode==='credit'&&s.cname?.toLowerCase()===c.name?.toLowerCase());
+  const cp=S.payments.filter(p=>p.custId===cid);
+  const all=[...cs.map(s=>({date:s.date,desc:`Sale: ${s.product}`,db:s.amount,cr:0})),...cp.map(p=>({date:p.date,desc:`Payment: ${p.note||'Received'}`,db:0,cr:p.amount}))].sort((a,b)=>a.date.localeCompare(b.date));
+  let run=0;
+  doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(0,90,60);
+  ['Date','Description','Debit','Credit','Balance'].forEach((h,i)=>{doc.text(h,[15,38,105,135,162][i],y);});
+  y+=7;doc.setFont('helvetica','normal');doc.setTextColor(20,40,30);
+  all.forEach((e,i)=>{
+    if(y>270){doc.addPage();y=15;}
+    run+=e.db-e.cr;
+    if(i%2===0){doc.setFillColor(248,253,250);doc.rect(15,y-4,180,7,'F');}
+    doc.text(e.date,15,y);doc.text(e.desc.slice(0,30),38,y);
+    doc.text(e.db?`₹${fmt(e.db)}`:'',105,y);doc.text(e.cr?`₹${fmt(e.cr)}`:'',135,y);
+    doc.setTextColor(run>0?180:0,run>0?50:120,run>0?50:70);
+    doc.text(`₹${fmt(run)}`,162,y);doc.setTextColor(20,40,30);y+=7;
+  });
+  doc.save(`${c.name}_Statement.pdf`);
+  toast(`Statement for ${c.name} ✓`,'g');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PRINT BILL
+   ════════════════════════════════════════════════════════════════ */
+function printBill(sale) {
+  qs('bill-content').textContent =
+`╔═══════════════════════════╗
+║   BAHUCHAR PAN SHOP       ║
+║   Manager Receipt         ║
+╚═══════════════════════════╝
+Date     : ${sale.date}
+────────────────────────────
+Customer : ${sale.cname||'Walk-in'}
+Product  : ${sale.product}
+Quantity : ${sale.qty}
+────────────────────────────
+AMOUNT   : ₹${fmt(sale.amount)}
+Mode     : ${sale.mode.toUpperCase()}
+────────────────────────────
+${sale.note?'Note : '+sale.note+'\n────────────────────────────\n':''}
+Thank you! Visit Again 🙏`;
+  openMo('mo-bill');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   UTILITIES
+   ════════════════════════════════════════════════════════════════ */
+function mBadge(m) {
+  return ({cash:'<span class="badge bg">💵 Cash</span>',online:'<span class="badge bb">📱 Online</span>',upi:'<span class="badge" style="background:#EDE9FE;color:#6B46C1">🔵 UPI</span>',bank:'<span class="badge ba">🏦 Bank</span>',credit:'<span class="badge br">📋 Credit</span>'})[m]||`<span class="badge">${m||''}</span>`;
+}
+
+function csvDL(rows, name) {
+  const csv = rows.map(r=>r.map(c=>JSON.stringify(c??'')).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = name+'.csv'; a.click();
+}
+
+function setDates() {
+  const t = today();
+  ['s-dt','p-dt','e-dt','tr-dt'].forEach(id=>{const e=qs(id);if(e)e.value=t;});
+  const rf=qs('r-from'); if(rf) rf.value=t.slice(0,7)+'-01';
+  const rt=qs('r-to');   if(rt) rt.value=t;
+}
+
+function setTopDate() {
+  const el = qs('tb-date');
+  if (el) el.textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+/* Modals */
+function openMo(id)  { qs(id)?.classList.add('on'); }
+function closeMo(id) { qs(id)?.classList.remove('on'); }
+document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
+
+/* Sidebar */
+function toggleSb() { qs('sb').classList.toggle('on'); qs('sb-ov').classList.toggle('on'); }
+function closeSb()  { qs('sb').classList.remove('on'); qs('sb-ov').classList.remove('on'); }
+
+/* Page navigation */
+const PAGE_NAMES = {dashboard:'Dashboard',sales:'Sales Entry',purchase:'Purchase Entry',expenses:'Daily Expenses',customers:'Customer Credit Ledger',accounts:'Accounts',transfers:'Transfers',stock:'Stock Manager',reports:'Reports'};
+function go(p) {
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));
+  document.querySelectorAll('.nav').forEach(e=>e.classList.remove('on'));
+  qs(`page-${p}`)?.classList.add('on');
+  qs(`n-${p}`)?.classList.add('on');
+  setEl('tb-title', PAGE_NAMES[p]||p);
+  closeSb();
+  if (p==='dashboard') { renderDash(); setTimeout(()=>{renderDashChart();renderExpCat();},80); }
+  if (p==='reports')   genReport();
+  if (p==='stock')     renderStock();
+}
+
+/* Dark mode */
+function toggleTheme() {
+  const h=document.documentElement, dk=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',dk?'light':'dark');
+  localStorage.setItem('bps_theme',dk?'light':'dark');
+  setEl('th-lbl',dk?'Dark Mode':'Light Mode');
+  setTimeout(()=>{Object.keys(CHS).forEach(dCh);renderDash();renderExpCat();},60);
+}
+
+function loadTheme() {
+  const t=localStorage.getItem('bps_theme')||'light';
+  document.documentElement.setAttribute('data-theme',t);
+  setEl('th-lbl',t==='dark'?'Light Mode':'Dark Mode');
+}
+
+/* Toast */
+function toast(msg, type='g') {
+  let el=qs('toast'); if(el)el.remove();
+  el=document.createElement('div'); el.id='toast';
+  el.className=`t${type}`; el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .4s';setTimeout(()=>el.remove(),400);},2800);
+}
+
+/* Enter key on login */
+['l-email','l-pass'].forEach(id=>qs(id)?.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();}));
+</script>
+</body>
+</html>
