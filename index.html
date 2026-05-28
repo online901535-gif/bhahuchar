@@ -745,30 +745,25 @@ function initFirebase(cfg) {
   }
 }
 
-/* ════════════════════════════════════════════════════════════════
-   BOOT — runs when page loads
-   ════════════════════════════════════════════════════════════════ */
+/* YOUR BAHUCHAR SHOP FIREBASE CONFIG — hardcoded, works on ALL devices */
+const FIREBASE_CFG = {
+  apiKey:            "AIzaSyAJ69GEz2E6Pe760_C-_PAtWHN8czIg6EU",
+  authDomain:        "bahuchar-shop.firebaseapp.com",
+  projectId:         "bahuchar-shop",
+  storageBucket:     "bahuchar-shop.firebasestorage.app",
+  messagingSenderId: "51562161613",
+  appId:             "1:51562161613:web:117f76595b69f497441084"
+};
+
 window.addEventListener('load', () => {
-  // Check if Firebase SDK loaded correctly
   if (typeof firebase === 'undefined') {
     qs('loading-screen').style.display = 'none';
-    document.body.innerHTML = `<div style="font-family:Arial;padding:40px;text-align:center;background:#f0faf5;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
-      <div style="font-size:48px">⚠️</div>
-      <h2 style="color:#00875A">Firebase SDK Failed to Load</h2>
-      <p style="color:#4A6E5E;max-width:400px">Please check your internet connection and reload the page. Firebase requires an active internet connection to load.</p>
-      <button onclick="location.reload()" style="background:#00875A;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:700">🔄 Reload Page</button>
-    </div>`;
+    document.body.innerHTML = '<div style="padding:40px;text-align:center"><h2>No Internet - Please check connection and reload</h2><button onclick="location.reload()" style="background:#00875A;color:#fff;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;margin-top:12px">Reload</button></div>';
     return;
   }
-
-  const cfg = getSavedConfig();
-  if (cfg && cfg.apiKey && cfg.apiKey !== 'YOUR_API_KEY') {
-    initFirebase(cfg);
-  } else {
-    qs('loading-screen').style.display = 'none';
-    qs('setup-screen').style.display = 'flex';
-  }
+  initFirebase(FIREBASE_CFG);
 });
+
 
 /* ════════════════════════════════════════════════════════════════
    AUTH
